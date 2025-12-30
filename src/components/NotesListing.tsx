@@ -10,10 +10,11 @@ interface Props {
     notes: any[];
     loading: boolean;
     openModal: (note: any) => void;
-    theme: any
+    theme: any;
+    CustomeMessage: string
 }
 
-const NotesListing = ({ notes, loading, openModal, theme }: Props) => {
+const NotesListing = ({ notes, loading, openModal, theme, CustomeMessage }: Props) => {
     const dispatch = useDispatch<AppDispatch>();
     const { isOnline } = useSelector((state: RootState) => state.network);
     const [error , setError] = useState('')
@@ -60,7 +61,7 @@ const NotesListing = ({ notes, loading, openModal, theme }: Props) => {
                                 { color: theme.text },
                             ]}
                             >
-                                {!isOnline ?  null : ' No notes found. Tap + to add one.'}
+                                {!isOnline ?  null : CustomeMessage ? CustomeMessage : ' No notes found. Tap + to add one.'}
                            
                         </Text>
                             </>

@@ -1,97 +1,131 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 📝 SupaNotes – React Native Notes App
 
-# Getting Started
+SupaNotes is a simple and secure **Notes application** built using **React Native CLI** and **Supabase**.  
+It demonstrates authentication, secure CRUD operations, offline-safe behavior, theming, and the ability to ship a working Android APK.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 🎯 Objective
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Build a Notes app that demonstrates:
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Supabase Authentication
+- Secure Notes CRUD
+- Persistent login session
+- Offline handling (no crashes)
+- Clean UI with Light / Dark theme
+- Working Android APK (debug or release)
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
-```
+## 🛠 Tech Stack
 
-## Step 2: Build and run your app
+- **React Native CLI**
+- **Supabase** (Authentication + Database)
+- **Redux Toolkit** (State management)
+- **AsyncStorage**
+- **Android (APK)**
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+❌ No Expo  
+❌ No backend other than Supabase  
 
-### Android
+---
 
-```sh
-# Using npm
-npm run android
+## ✨ Features
 
-# OR using Yarn
-yarn android
-```
+### 🔐 Authentication
+- Email & password signup
+- Email & password login
+- Session persists after app restart
+- Secure logout
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### 🗂 Notes (CRUD)
+- Create notes
+- Edit notes (modal-based)
+- Delete notes
+- List user notes
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Each note includes:
+- `id`
+- `title`
+- `content`
+- `user_id`
+- `created_at`
+- `updated_at`
 
-```sh
-bundle install
-```
+🔒 **Security:**  
+Users can only access their own notes via Supabase Row Level Security (RLS).
 
-Then, and every time you update your native dependencies, run:
+---
 
-```sh
-bundle exec pod install
-```
+### 📡 Offline Handling (Option A)
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+- App opens normally when offline
+- Splash screen never blocks navigation
+- Login & signup show offline messages
+- Notes fetch shows offline state
+- Create / Update / Delete disabled when offline
+- App never crashes due to network loss
 
-```sh
-# Using npm
-npm run ios
+---
 
-# OR using Yarn
-yarn ios
-```
+### 🌗 Light / Dark Theme
+- System-based theme support
+- Theme toggle in Settings
+- Theme stored in AsyncStorage
+- Notes list, modals, and settings are theme-aware
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### 🚪 Logout
+- Secure Supabase logout
+- Clears cached user profile
+- Resets Redux notes state
+- Redirects to Auth flow
 
-## Step 3: Modify your app
+---
 
-Now that you have successfully run the app, let's make changes!
+## 📱 App Flow
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Splash Screen
+↓
+Restore Supabase Session (local)
+↓
+Authenticated → Notes (Bottom Tabs)
+Unauthenticated → Login / Signup
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+---
 
-## Congratulations! :tada:
+## 🧠 Architecture Overview
 
-You've successfully run and modified your React Native App. :partying_face:
+- **Supabase**
+  - Auth
+  - Session persistence
+  - Database access
+- **Redux Toolkit**
+  - Notes list
+  - Loading & error state
+- **AsyncStorage**
+  - User profile (non-sensitive)
+  - Theme preference
 
-### Now what?
+⚠️ Tokens are never stored manually.
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+---
 
-# Troubleshooting
+## 🗃 Supabase Database Schema
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+### Notes Table
 
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```sql
+create table notes (
+  id uuid primary key default uuid_generate_v4(),
+  title text not null,
+  content text,
+  user_id uuid references auth.users(id),
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);

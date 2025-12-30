@@ -25,7 +25,6 @@ const NotesScreen = () => {
   const activeTheme = isDarkMode ? DarkTheme : LigthTheme;
 
   useEffect(() => {
-    console.log('isOnline=>',isOnline)
     if(isOnline){
       dispatch(fetchNotes());
     }

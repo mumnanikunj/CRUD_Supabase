@@ -66,7 +66,6 @@ const LoginScreen = ({ navigation }: any) => {
         email: email.trim(),
         password,
       });
-      console.log('Data===>', error)
       setLoading(false)
       navigation.reset({
         index: 0,

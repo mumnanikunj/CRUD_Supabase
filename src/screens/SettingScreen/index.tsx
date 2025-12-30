@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,14 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import styles from './styles';
-import { getUserFromLocal, getUserProfile } from '../../utils/userStorage';
+import { clearUserProfile, getUserProfile } from '../../utils/userStorage';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreference } from '../../Redux/slices/themeSlice';
 import { RootState } from '../../Redux/store';
 import { DarkTheme, LigthTheme } from '../../utils/theme';
 import { resetNotes } from '../../Redux/slices/notesSlice';
 import CommonHeader from '../../components/CommonHeader';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface UserProfile {
   id: string;
@@ -37,14 +38,16 @@ const SettingScreen = ({ navigation }: any) => {
       : preference === 'dark';
       const activeTheme = isDarkMode ? DarkTheme : LigthTheme;
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     loadProfile();
-  }, []);
+  }, [])
+);
 
   const loadProfile = async () => {
-    const data: any = await getUserProfile()
-    console.log('Dat======>>>',data)
-    if (data) setUser(data);
+    const data: any = await supabase.auth.getUser()
+    console.log(data.data.user)
+    if (data) setUser(data.data.user);
   };
 
 
@@ -107,6 +110,7 @@ const SettingScreen = ({ navigation }: any) => {
         onPress: async () => {
           await supabase.auth.signOut();
           await AsyncStorage.removeItem('USER_PROFILE');
+          clearUserProfile()
           dispatch(resetNotes());
           navigation.reset({
             index: 0,
@@ -131,7 +135,7 @@ const SettingScreen = ({ navigation }: any) => {
         <Text style={[styles.sectionTitle,{color:activeTheme.text}]}>Profile</Text>
 
         <Text style={[styles.label,{color: activeTheme.text}]}>Name</Text>
-        <Text style={[styles.value,{color: activeTheme.text}]}>{user?.user_metadata?.name || '—'}</Text>
+        <Text style={[styles.value,{color: activeTheme.text}]}>{user?.user_metadata?.name || user?.name|| '—'}</Text>
 
         <Text style={[styles.label,{color:activeTheme.text}]}>Email</Text>
         <Text style={[styles.value,{color:activeTheme.text}]}>{user?.email || '—'}</Text>

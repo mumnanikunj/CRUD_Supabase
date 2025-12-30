@@ -10,7 +10,7 @@ const SplashScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     const init = async () => {
-      await new Promise(resolve=> setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const localUser = await getUserFromLocal();
       if (localUser) {
@@ -45,7 +45,7 @@ const SplashScreen = ({ navigation }: any) => {
           created_at: user.created_at,
           name: user.user_metadata?.name ?? '',
         });
-        saveUserToLocal(user)
+        await saveUserToLocal(user)
         navigation.reset({
           index: 0,
           routes: [{ name: 'BottomTabNavigation' }],

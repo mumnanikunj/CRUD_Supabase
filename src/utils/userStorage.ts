@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const USER_KEY = 'USER_PROFILE';
+const LOCAL_KEY = "USER_LOCALPROFILE"
 
 export const saveUserProfile = async (user: {
   id: string;
@@ -13,7 +14,7 @@ export const saveUserProfile = async (user: {
 
 export const saveUserToLocal = async (user: any) => {
   try {
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+    await AsyncStorage.setItem(LOCAL_KEY, JSON.stringify(user));
   } catch (e) {
     console.log('Save user error', e);
   }
@@ -21,7 +22,7 @@ export const saveUserToLocal = async (user: any) => {
 
 export const getUserFromLocal = async () => {
   try {
-    const data = await AsyncStorage.getItem(USER_KEY);
+    const data = await AsyncStorage.getItem(LOCAL_KEY);
     return data ? JSON.parse(data) : null;
   } catch (e) {
     return null;
@@ -35,4 +36,5 @@ export const getUserProfile = async () => {
 
 export const clearUserProfile = async () => {
   await AsyncStorage.removeItem(USER_KEY);
+  await AsyncStorage.removeItem(LOCAL_KEY)
 };

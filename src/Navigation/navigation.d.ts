@@ -7,6 +7,6 @@ export type RootStackParamList = {
 };
 
 export type BottomTabParamList = {
-  BookScreen: undefined;
+  NotesScreen: undefined;
   SettingScreen: undefined;
 };

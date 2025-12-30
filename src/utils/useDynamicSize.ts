@@ -65,7 +65,6 @@ export const fs = (size: number) => {
 
 export const getTabBarHeight = (size: number) => {
   const { isTablet, height } = getMetrics();
-  console.log(isTablet,height)
 
   const basePhone = 10;
   const baseTablet = 60;

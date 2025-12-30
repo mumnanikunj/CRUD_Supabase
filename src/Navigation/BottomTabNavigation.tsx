@@ -5,9 +5,9 @@ import SettingScreen from '../screens/SettingScreen';
 import { useDispatch, useSelector } from 'react-redux';
 import { DarkTheme, LigthTheme } from '../utils/theme';
 import { RootState } from '../Redux/store';
-import BookScreen from '../screens/BooksScreen';
 import { AppImages } from '../assets';
 import { getTabBarHeight, hp, wp } from '../utils/useDynamicSize';
+import NotesScreen from '../screens/NotesScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,7 +30,7 @@ const BottomTabNavigation = () => {
           tabBarShowLabel: false,
         })}
       >
-        <Tab.Screen name="Books" component={BookScreen} 
+        <Tab.Screen name="Notes" component={NotesScreen} 
           options={{
             tabBarLabel: "",
             tabBarIcon:({focused , color ,size})=>(

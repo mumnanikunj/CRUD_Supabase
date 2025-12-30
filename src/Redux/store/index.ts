@@ -2,6 +2,9 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import themeReducer from '../slices/themeSlice';
 import { persistStore, persistReducer } from 'redux-persist';
+import  notesReducer  from '../slices/notesSlice';
+import networkReducer from '../slices/networkSlice';;
+
 
 const persistConfig = {
   key: 'root',
@@ -11,6 +14,8 @@ const persistConfig = {
   
 const rootReducer = combineReducers({
   theme: themeReducer,
+  notes: notesReducer,
+  network: networkReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -1,17 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
-  Switch,
   Alert,
   ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import styles from './styles';
-import { clearUserProfile, getUserProfile } from '../../utils/userStorage';
+import { clearUserProfile } from '../../utils/userStorage';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreference } from '../../Redux/slices/themeSlice';
 import { RootState } from '../../Redux/store';
@@ -19,46 +17,65 @@ import { DarkTheme, LigthTheme } from '../../utils/theme';
 import { resetNotes } from '../../Redux/slices/notesSlice';
 import CommonHeader from '../../components/CommonHeader';
 import { useFocusEffect } from '@react-navigation/native';
+import { safeGetUser } from '../../utils/safeSupabase';
 
 interface UserProfile {
   id: string;
   email: string;
-  name: string;
+  name?: string;
   created_at: string;
-  user_metadata:any;
+  user_metadata?: any;
 }
 
 const SettingScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
-  const { preference, systemTheme } = useSelector((state:RootState) => state.theme);
+  const { preference, systemTheme } = useSelector(
+    (state: RootState) => state.theme
+  );
+
   const [user, setUser] = useState<UserProfile | null>(null);
-   const isDarkMode =
+  const [offlineMessage, setOfflineMessage] = useState(false);
+
+  const isDarkMode =
     preference === 'system'
       ? systemTheme === 'dark'
       : preference === 'dark';
-      const activeTheme = isDarkMode ? DarkTheme : LigthTheme;
+
+  const activeTheme = isDarkMode ? DarkTheme : LigthTheme;
+
+const loadProfile = async () => {
+  const { data } = await safeGetUser();
+
+  if (data?.user) {
+    setUser(data.user);
+    setOfflineMessage(false);
+    await AsyncStorage.setItem(
+      'Local_User',
+      JSON.stringify(data.user)
+    );
+  } else {
+    const cached = await AsyncStorage.getItem('Local_User');
+    if (cached) {
+      setUser(JSON.parse(cached));
+      setOfflineMessage(true);
+    }
+  }
+};
 
   useFocusEffect(
-  useCallback(() => {
-    loadProfile();
-  }, [])
-);
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
-  const loadProfile = async () => {
-    const data: any = await supabase.auth.getUser()
-    console.log(data.data.user)
-    if (data) setUser(data.data.user);
-  };
-
-
-    const handleChangeTheme = (value: 'light' | 'dark' | 'system') => {
+  const handleChangeTheme = (value: 'light' | 'dark' | 'system') => {
     dispatch(setPreference(value));
   };
 
-   const renderRadioItem = (
+  const renderRadioItem = (
     label: string,
     value: 'light' | 'dark' | 'system',
-    description?: string,
+    description?: string
   ) => {
     const selected = preference === value;
 
@@ -69,7 +86,9 @@ const SettingScreen = ({ navigation }: any) => {
         onPress={() => handleChangeTheme(value)}
       >
         <View style={styles.rowTextContainer}>
-          <Text style={[styles.label, { color: activeTheme.text }]}>{label}</Text>
+          <Text style={[styles.label, { color: activeTheme.text }]}>
+            {label}
+          </Text>
           {description ? (
             <Text
               style={[
@@ -82,12 +101,7 @@ const SettingScreen = ({ navigation }: any) => {
           ) : null}
         </View>
 
-        <View
-          style={[
-            styles.radioOuter,
-            { borderColor: '#355177ff' },
-          ]}
-        >
+        <View style={[styles.radioOuter, { borderColor: '#355177ff' }]}>
           {selected ? (
             <View
               style={[
@@ -110,7 +124,8 @@ const SettingScreen = ({ navigation }: any) => {
         onPress: async () => {
           await supabase.auth.signOut();
           await AsyncStorage.removeItem('USER_PROFILE');
-          clearUserProfile()
+          await AsyncStorage.removeItem('Local_User');
+          clearUserProfile();
           dispatch(resetNotes());
           navigation.reset({
             index: 0,
@@ -123,32 +138,64 @@ const SettingScreen = ({ navigation }: any) => {
 
   return (
     <>
-      <CommonHeader
-        HeaderTitle={"Settings"}
-        theme={activeTheme}
-      />
-   
-    <ScrollView style={[styles.container,{ backgroundColor: activeTheme.background }]}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <View style={[styles.card,{backgroundColor: activeTheme.mode === 'dark' ? '#111111' : '#F4F4F4',}]}>
-        <Text style={[styles.sectionTitle,{color:activeTheme.text}]}>Profile</Text>
+      <CommonHeader HeaderTitle="Settings" theme={activeTheme} />
+      <ScrollView
+        style={{ backgroundColor: activeTheme.background }}
+        contentContainerStyle={styles.contentContainer}
+      >
+         {offlineMessage && (
+        <View
+          style={{
+            backgroundColor: '#FFDADA',
+            padding: 10,
+            marginHorizontal: 16,
+            borderRadius: 8,
+            marginTop: 8,
+          }}
+        >
+          <Text style={{ color: '#B00020', textAlign: 'center' }}>
+            You are offline. Showing last saved profile.
+          </Text>
+        </View>
+      )}
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor:
+                activeTheme.mode === 'dark' ? '#111111' : '#F4F4F4',
+            },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: activeTheme.text }]}>
+            Profile
+          </Text>
 
-        <Text style={[styles.label,{color: activeTheme.text}]}>Name</Text>
-        <Text style={[styles.value,{color: activeTheme.text}]}>{user?.user_metadata?.name || user?.name|| '—'}</Text>
+          <Text style={[styles.label, { color: activeTheme.text }]}>
+            Name
+          </Text>
+          <Text style={[styles.value, { color: activeTheme.text }]}>
+            {user?.user_metadata?.name || user?.name || '—'}
+          </Text>
 
-        <Text style={[styles.label,{color:activeTheme.text}]}>Email</Text>
-        <Text style={[styles.value,{color:activeTheme.text}]}>{user?.email || '—'}</Text>
+          <Text style={[styles.label, { color: activeTheme.text }]}>
+            Email
+          </Text>
+          <Text style={[styles.value, { color: activeTheme.text }]}>
+            {user?.email || '—'}
+          </Text>
 
-        <Text style={[styles.label,{color:activeTheme.text}]}>Joined</Text>
-        <Text style={[styles.value,{color:activeTheme.text}]}>
-          {user?.created_at
-            ? new Date(user.created_at).toDateString()
-            : '—'}
-        </Text>
-      </View>
+          <Text style={[styles.label, { color: activeTheme.text }]}>
+            Joined
+          </Text>
+          <Text style={[styles.value, { color: activeTheme.text }]}>
+            {user?.created_at
+              ? new Date(user.created_at).toDateString()
+              : '—'}
+          </Text>
+        </View>
 
-       <View
+        <View
           style={[
             styles.section,
             {
@@ -164,17 +211,17 @@ const SettingScreen = ({ navigation }: any) => {
           {renderRadioItem(
             'Use system theme',
             'system',
-            `Current: ${systemTheme}`,
+            `Current: ${systemTheme}`
           )}
           {renderRadioItem('Light', 'light')}
           {renderRadioItem('Dark', 'dark')}
         </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </ScrollView>
-     </>
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </>
   );
 };
 

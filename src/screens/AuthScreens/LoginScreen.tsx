@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   Animated,
   StyleSheet,
+  BackHandler,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { supabase } from '../../lib/supabase';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
+import { useFocusEffect } from '@react-navigation/native';
 
 const LoginScreen = ({ navigation }: any) => {
   const { isOnline } = useSelector((state: RootState) => state.network);
@@ -33,6 +35,19 @@ const LoginScreen = ({ navigation }: any) => {
       fadeAnim.stopAnimation();
     };
   }, []);
+
+   useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+     const unsubscribe =   BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => unsubscribe
+    }, [])
+  );
 
   const validate = () => {
     if (!email.trim()) {

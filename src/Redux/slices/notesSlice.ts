@@ -105,6 +105,12 @@ const notesSlice = createSlice({
     resetNotes: () => initialState,
     setSearchQuery(state, action: PayloadAction<string>) {
       state.searchQuery = action.payload;
+
+      if (state.error) {
+        state.filteredNotes = [];
+        return;
+      }
+
       state.filteredNotes = filterNotes(state.notes, action.payload);
     },
   },
@@ -113,6 +119,8 @@ const notesSlice = createSlice({
       .addCase(fetchNotes.pending, state => {
         state.loading = true;
         state.error = null;
+        state.filteredNotes = [];
+        state.searchQuery = '';
       })
       .addCase(fetchNotes.fulfilled, (state, action) => {
         state.loading = false;
@@ -121,10 +129,13 @@ const notesSlice = createSlice({
           action.payload,
           state.searchQuery
         );
+        state.error = null;
       })
       .addCase(fetchNotes.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message ?? null;
+        state.filteredNotes = [];
+        state.searchQuery = '';
+        state.error = 'Offline. Connect to the internet to load notes.';
       })
       .addCase(createNote.fulfilled, (state, action) => {
         state.notes.unshift(action.payload);

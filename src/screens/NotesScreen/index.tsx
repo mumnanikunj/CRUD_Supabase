@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, BackHandler, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../Redux/store';
@@ -9,6 +9,7 @@ import { DarkTheme, LigthTheme } from '../../utils/theme';
 import CommonHeader from '../../components/CommonHeader';
 import NotesListing from '../../components/NotesListing';
 import SearchBox from '../../components/SearchBox';
+import { useFocusEffect } from '@react-navigation/native';
 
 const NotesScreen = () => {
 
@@ -23,6 +24,31 @@ const NotesScreen = () => {
       ? systemTheme === 'dark'
       : preference === 'dark';
   const activeTheme = isDarkMode ? DarkTheme : LigthTheme;
+
+  
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          'Exit App',
+          'Are you sure you want to exit?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Exit',
+              style: 'destructive',
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+        return true;
+      };
+
+      const unsubscribe = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => unsubscribe
+    }, [])
+  );
 
   useEffect(() => {
     if(isOnline){
@@ -40,7 +66,11 @@ const NotesScreen = () => {
     setModalVisible(true);
   };
 
-
+  
+const customMessage =
+  searchQuery && filteredNotes.length === 0
+    ? 'No matching notes found'
+    : '';
 
   return (
     <>
@@ -60,7 +90,7 @@ const NotesScreen = () => {
           openModal={openEditModal}
           loading={loading}
           theme={activeTheme}
-          CustomeMessage={"Not Match Notes"}
+          CustomeMessage={customMessage}
         />
         <TouchableOpacity style={styles.fab} onPress={openAddModal}>
           <Text style={styles.fabText}>＋</Text>
